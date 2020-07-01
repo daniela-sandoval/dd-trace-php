@@ -599,9 +599,6 @@
                 }
             },
             "phpredis3": {
-                "require": {
-                    "ext-redis": "3.*"
-                },
                 "scenario-options": {
                     "create-lockfile": false
                 },
@@ -610,9 +607,6 @@
                 }
             },
             "phpredis4": {
-                "require": {
-                    "ext-redis": "4.*"
-                },
                 "scenario-options": {
                     "create-lockfile": false
                 },
@@ -621,9 +615,6 @@
                 }
             },
             "phpredis5": {
-                "require": {
-                    "ext-redis": "5.*"
-                },
                 "scenario-options": {
                     "create-lockfile": false
                 },
