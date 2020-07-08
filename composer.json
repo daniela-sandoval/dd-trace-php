@@ -603,7 +603,7 @@
                     "create-lockfile": false
                 },
                 "scripts": {
-                    "pre-update-cmd": "printf 'no' | sudo pecl install -f redis-3.1.6"
+                    "pre-autoload-dump": "printf 'no' | sudo pecl install -f redis-3.1.6"
                 }
             },
             "phpredis4": {
@@ -611,7 +611,7 @@
                     "create-lockfile": false
                 },
                 "scripts": {
-                    "pre-update-cmd": "printf 'no' | sudo pecl install -f redis-4.3.0"
+                    "pre-autoload-dump": "printf 'no' | sudo pecl install -f redis-4.3.0"
                 }
             },
             "phpredis5": {
@@ -619,7 +619,7 @@
                     "create-lockfile": false
                 },
                 "scripts": {
-                    "pre-update-cmd": "printf 'no' | sudo pecl install -f redis-5.2.2"
+                    "pre-autoload-dump": "printf 'no' | sudo pecl install -f redis-5.2.2"
                 }
             }
         },
