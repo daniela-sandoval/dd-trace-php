@@ -53,7 +53,7 @@ static void _free_span(ddtrace_span_fci *span_fci) {
     efree(span_fci);
 }
 
-static void ddtrace_drop_span(ddtrace_span_fci *span_fci) {
+void ddtrace_drop_span(ddtrace_span_fci *span_fci) {
     if (span_fci->dispatch) {
         span_fci->dispatch->busy = 0;
         ddtrace_dispatch_release(span_fci->dispatch);

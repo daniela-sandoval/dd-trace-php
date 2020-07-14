@@ -48,4 +48,7 @@ void ddtrace_close_span(TSRMLS_D);
 void ddtrace_drop_top_open_span(TSRMLS_D);
 void ddtrace_serialize_closed_spans(zval *serialized TSRMLS_DC);
 
+// Prefer ddtrace_drop_top_open_span
+void ddtrace_drop_span(ddtrace_span_fci *span_fci);
+
 #endif  // DD_SPAN_H

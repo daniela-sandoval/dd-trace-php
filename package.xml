@@ -372,6 +372,19 @@
             <file name="tests/ext/sandbox/generator_with_return.phpt" role="test" />
             <file name="tests/ext/sandbox/generator_yield_from.phpt" role="test" />
             <file name="tests/ext/sandbox/get_last_error.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/01.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/02.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/03.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/04.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/05.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/06.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/01.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/02.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/03.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/04.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/05.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/06.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/07.phpt" role="test" />
             <file name="tests/ext/sandbox/keep_spans_in_limited_tracing_internal_functions.phpt" role="test" />
             <file name="tests/ext/sandbox/keep_spans_in_limited_tracing_internal_methods.phpt" role="test" />
             <file name="tests/ext/sandbox/keep_spans_in_limited_tracing_userland_functions.phpt" role="test" />
