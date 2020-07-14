@@ -17,16 +17,13 @@
 
 #define ISO_8601_LEN (20 + 1)  // +1 for terminating null-character
 
-// True global; only modify on MINIT/STARTUP
-static time_t startup_time = -1;
-
-static void _dd_get_startup_time(char *buf) {
-    time_t now = (startup_time == -1) ? time(NULL) : startup_time;
+static void _dd_get_time(char *buf) {
+    time_t now = time(NULL);
     struct tm *tm = gmtime(&now);
     if (tm) {
         strftime(buf, ISO_8601_LEN, "%Y-%m-%dT%TZ", tm);
     } else {
-        ddtrace_log_debug("Error getting startup time");
+        ddtrace_log_debug("Error getting time");
     }
 }
 
@@ -90,7 +87,7 @@ static void _dd_get_agent_url(char *buf) {
 static void _dd_get_startup_config(HashTable *ht) {
     // Cross-language tracer values
     char time[ISO_8601_LEN];
-    _dd_get_startup_time(time);
+    _dd_get_time(time);
     _dd_add_assoc_string(ht, ZEND_STRL("date"), time);
 
     char *os_name = php_get_uname('a');
@@ -162,11 +159,20 @@ static size_t _dd_curl_write_noop(void *ptr, size_t size, size_t nmemb, void *us
     return size * nmemb;
 }
 
-static size_t _dd_check_for_agent_error(char *error) {
+static size_t _dd_check_for_agent_error(char *error, bool quick) {
     CURL *curl = curl_easy_init();
     ddtrace_curl_set_hostname(curl);
-    ddtrace_curl_set_timeout(curl);
-    ddtrace_curl_set_connect_timeout(curl);
+    if (quick) {
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, DDTRACE_AGENT_QUICK_TIMEOUT);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, DDTRACE_AGENT_QUICK_CONNECT_TIMEOUT);
+    } else {
+        ddtrace_curl_set_timeout(curl);
+        ddtrace_curl_set_connect_timeout(curl);
+    }
+
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "X-Datadog-Diagnostic-Check: 1");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     const char *body = "[]";
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(body));
@@ -182,6 +188,7 @@ static size_t _dd_check_for_agent_error(char *error) {
         strcpy(error, curl_easy_strerror(res));
         error_len = strlen(error);
     }
+    curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     return error_len;
 }
@@ -203,11 +210,11 @@ static bool _dd_open_basedir_allowed(const char *file TSRMLS_DC) {
  *     - ddtrace.c:_dd_info_diagnostics_table(); PHP info output
  *     - _dd_print_values_to_log(); Debug log output
  */
-void ddtrace_startup_diagnostics(HashTable *ht) {
+void ddtrace_startup_diagnostics(HashTable *ht, bool quick) {
     TSRMLS_FETCH();
     // Cross-language tracer values
     char agent_error[CURL_ERROR_SIZE];
-    if (_dd_check_for_agent_error(agent_error)) {
+    if (_dd_check_for_agent_error(agent_error, quick)) {
         _dd_add_assoc_string(ht, ZEND_STRL("agent_error"), agent_error);
     }
     //_dd_add_assoc_string(ht, ZEND_STRL("sampling_rules_error"), ""); // TODO Parse at C level
@@ -363,7 +370,7 @@ void ddtrace_startup_logging_json(smart_str *buf) {
     zend_hash_init(ht, DDTRACE_STARTUP_STAT_COUNT, NULL, ZVAL_PTR_DTOR, 0);
 
     _dd_get_startup_config(ht);
-    ddtrace_startup_diagnostics(ht);
+    ddtrace_startup_diagnostics(ht, false);
 
     _dd_serialize_json(ht, buf);
 
@@ -406,23 +413,21 @@ static void _dd_print_values_to_log(HashTable *ht, char *time) {
     }
 }
 
-void ddtrace_startup_logging_startup(void) {
-    startup_time = time(NULL);
+// Only show startup logs on the first request
+void ddtrace_startup_logging_first_rinit(void) {
     if (!get_dd_trace_startup_logs() || strcmp("cli", sapi_module.name) == 0) {
         return;
     }
 
     char time[ISO_8601_LEN];
-    _dd_get_startup_time(time);
+    _dd_get_time(time);
 
     HashTable *ht;
     ALLOC_HASHTABLE(ht);
     zend_hash_init(ht, DDTRACE_STARTUP_STAT_COUNT, NULL, ZVAL_PTR_DTOR, 0);
 
-    ddtrace_startup_diagnostics(ht);
-    if (get_dd_trace_debug()) {
-        _dd_print_values_to_log(ht, time);
-    }
+    ddtrace_startup_diagnostics(ht, true);
+    _dd_print_values_to_log(ht, time);
     _dd_get_startup_config(ht);
 
     smart_str buf = {0};
