@@ -119,11 +119,14 @@ static HashTable *_get_lookup_for_target(zval *class_name TSRMLS_DC) {
         zval_ptr_dtor(&class_name);
         class_name = class_name_prev;
 #else
-        ddtrace_downcase_zval(class_name);
-        overridable_lookup = zend_hash_find_ptr(DDTRACE_G(class_lookup), Z_STR_P(class_name));
+        zend_string *class_name_lc = zend_string_tolower(Z_STR_P(class_name));
+        overridable_lookup = zend_hash_find_ptr(DDTRACE_G(class_lookup), class_name_lc);
         if (!overridable_lookup) {
-            overridable_lookup = ddtrace_new_class_lookup(class_name TSRMLS_CC);
+            zval tmp;
+            ZVAL_STR(&tmp, class_name_lc);
+            overridable_lookup = ddtrace_new_class_lookup(&tmp TSRMLS_CC);
         }
+        zend_string_release(class_name_lc);
 #endif
     } else {
         overridable_lookup = DDTRACE_G(function_lookup);
