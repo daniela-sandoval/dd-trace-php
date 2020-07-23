@@ -375,16 +375,24 @@
             <file name="tests/ext/sandbox/hook_function/01.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_function/02.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_function/03.phpt" role="test" />
-            <file name="tests/ext/sandbox/hook_function/04.phpt" role="test" />
-            <file name="tests/ext/sandbox/hook_function/05.phpt" role="test" />
-            <file name="tests/ext/sandbox/hook_function/06.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/posthook_01.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/posthook_02.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/posthook_03.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/prehook_01.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/prehook_02.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_function/prehook_03.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_method/01.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_method/02.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_method/03.phpt" role="test" />
-            <file name="tests/ext/sandbox/hook_method/04.phpt" role="test" />
-            <file name="tests/ext/sandbox/hook_method/05.phpt" role="test" />
-            <file name="tests/ext/sandbox/hook_method/06.phpt" role="test" />
-            <file name="tests/ext/sandbox/hook_method/07.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/posthook_01.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/posthook_02.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/posthook_03.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/posthook_04.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/posthook_05.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/prehook_01.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/prehook_02.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/prehook_03.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/prehook_04.phpt" role="test" />
             <file name="tests/ext/sandbox/keep_spans_in_limited_tracing_internal_functions.phpt" role="test" />
             <file name="tests/ext/sandbox/keep_spans_in_limited_tracing_internal_methods.phpt" role="test" />
             <file name="tests/ext/sandbox/keep_spans_in_limited_tracing_userland_functions.phpt" role="test" />

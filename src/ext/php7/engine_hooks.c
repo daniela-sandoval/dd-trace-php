@@ -470,6 +470,7 @@ static ZEND_RESULT_CODE ddtrace_do_hook_method_prehook(zend_execute_data *call, 
             efree(error);
             error = NULL;
         }
+        // todo: goto where?
     }
 
     zend_object *called_this = zend_get_this_object(call);

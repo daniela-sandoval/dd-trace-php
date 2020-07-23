@@ -1,5 +1,5 @@
 --TEST--
-DDTrace\hook_method prehook is passed the correct args with inheritance
+DDTrace\hook_method posthook is passed the correct args with inheritance
 --INI--
 zend.assertions=1
 assert.exception=1
@@ -8,10 +8,13 @@ assert.exception=1
 use DDTrace\SpanData;
 
 var_dump(DDTrace\hook_method('Greeter', 'greet',
-    function ($This, $scope, $args) {
+    null,
+    function ($This, $scope, $args, $retval) {
+        echo "Greeter::greet hooked.\n";
         assert($this instanceof SubGreeter);
         assert($scope == "SubGreeter");
         assert($args == ["Datadog"]);
+        assert($retval == null);
     }
 ));
 
@@ -29,10 +32,13 @@ $greeter = new SubGreeter();
 $greeter->greet('Datadog');
 
 var_dump(DDTrace\hook_method('Greeter', 'greet',
-    function ($This, $scope, $args) {
-        assert($this instanceof Greeter);
+    null,
+    function ($This, $scope, $args, $retval) {
+        echo "Greeter::greet hooked.\n";
+        assert($This instanceof Greeter);
         assert($scope == "Greeter");
         assert($args == ["Datadog"]);
+        assert($retval == null);
     }
 ));
 $greeter = new Greeter();
@@ -42,6 +48,8 @@ $greeter->greet('Datadog');
 --EXPECT--
 bool(true)
 Hello, Datadog.
+Greeter::greet hooked.
 bool(true)
 Hello, Datadog.
+Greeter::greet hooked.
 

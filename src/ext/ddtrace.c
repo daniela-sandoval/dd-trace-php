@@ -753,7 +753,7 @@ static PHP_FUNCTION(hook_method) {
     ddtrace_string classname = {.ptr = NULL, .len = 0};
     ddtrace_string funcname = {.ptr = NULL, .len = 0};
     zval *prehook = NULL, *posthook = NULL;
-    if (zend_parse_parameters_ex(ZEND_PARSE_PARAMS_QUIET, ZEND_NUM_ARGS() TSRMLS_CC, "ss|OO", &classname.ptr,
+    if (zend_parse_parameters_ex(ZEND_PARSE_PARAMS_QUIET, ZEND_NUM_ARGS() TSRMLS_CC, "ss|O!O!", &classname.ptr,
                                  &classname.len, &funcname.ptr, &funcname.len, &prehook, zend_ce_closure, &posthook,
                                  zend_ce_closure) != SUCCESS) {
         ddtrace_log_debug(
@@ -777,8 +777,59 @@ static PHP_FUNCTION(hook_method) {
 
     // at this point we know we have a posthook XOR posthook
     zval *callable = prehook ?: posthook;
+    uint32_t options = (prehook ? DDTRACE_DISPATCH_PREHOOK : DDTRACE_DISPATCH_POSTHOOK) | DDTRACE_DISPATCH_NON_TRACING;
 
-    zend_bool rv = ddtrace_trace(NULL, funcname, tracing_closure, options TSRMLS_CC);
+    // todo: stop duplicating strings everywhere...
+    zval *class_name_zv = NULL, *method_name_zv = NULL;
+    MAKE_STD_ZVAL(class_name_zv);
+    MAKE_STD_ZVAL(method_name_zv);
+    ZVAL_STRINGL(class_name_zv, classname.ptr, classname.len, 1);
+    ZVAL_STRINGL(method_name_zv, funcname.ptr, funcname.len, 1);
+
+    zend_bool rv = ddtrace_trace(class_name_zv, method_name_zv, callable, options TSRMLS_CC);
+
+    zval_ptr_dtor(&method_name_zv);
+    zval_ptr_dtor(&class_name_zv);
+
+    RETURN_BOOL(rv)
+}
+
+static PHP_FUNCTION(hook_function) {
+    ddtrace_string funcname = {.ptr = NULL, .len = 0};
+    zval *prehook = NULL, *posthook = NULL;
+    if (zend_parse_parameters_ex(ZEND_PARSE_PARAMS_QUIET, ZEND_NUM_ARGS() TSRMLS_CC, "s|O!O!", &funcname.ptr,
+                                 &funcname.len, &prehook, zend_ce_closure, &posthook, zend_ce_closure) != SUCCESS) {
+        ddtrace_log_debug(
+            "Unable to parse parameters for DDTrace\\hook_function; expected "
+            "(string $method_name, ?callable $prehook = NULL, ?callable $posthook = NULL)");
+        RETURN_FALSE
+    }
+
+    if (prehook && posthook) {
+        // both callbacks given; not yet supported
+        ddtrace_log_debug(
+            "DDTrace\\hook_function was given both prehook and posthook. This is not yet supported; ignoring call.");
+        RETURN_FALSE
+    }
+
+    if (!prehook && !posthook) {
+        ddtrace_log_debug("DDTrace\\hook_function was given neither prehook nor posthook.");
+        // todo: should this return true?
+        RETURN_FALSE
+    }
+
+    // at this point we know we have a posthook XOR posthook
+    zval *callable = prehook ?: posthook;
+    uint32_t options = (prehook ? DDTRACE_DISPATCH_PREHOOK : DDTRACE_DISPATCH_POSTHOOK) | DDTRACE_DISPATCH_NON_TRACING;
+
+    zval *function_name_zv = NULL;
+    MAKE_STD_ZVAL(function_name_zv);
+    ZVAL_STRINGL(function_name_zv, funcname.ptr, funcname.len, 1);
+
+    zend_bool rv = ddtrace_trace(NULL, function_name_zv, callable, options TSRMLS_CC);
+
+    zval_ptr_dtor(&function_name_zv);
+    RETURN_BOOL(rv)
 }
 #else
 static PHP_FUNCTION(hook_method) {
@@ -838,7 +889,7 @@ static PHP_FUNCTION(hook_function) {
     // clang-format on
     ZEND_PARSE_PARAMETERS_END_EX({
         ddtrace_log_debug(
-            "Unable to parse parameters for DDTrace\\hook_method; expected "
+            "Unable to parse parameters for DDTrace\\hook_function; expected "
             "(string $function_name, ?Closure $prehook = NULL, ?Closure $posthook = NULL)");
     });
 

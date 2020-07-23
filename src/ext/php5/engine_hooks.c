@@ -315,15 +315,75 @@ static void _dd_execute_end_span(ddtrace_span_fci *span_fci, zval *user_retval,
 }
 
 void (*_dd_prev_execute_ex)(zend_execute_data *execute_data TSRMLS_DC);
-void ddtrace_execute_ex(zend_execute_data *execute_data TSRMLS_DC) {
-    zval *This = EG(This);
-    zend_function *fbc = (zend_function *)execute_data->op_array;
-    ddtrace_dispatch_t *dispatch = _dd_lookup_dispatch_from_fbc(This, fbc TSRMLS_CC);
-    if (!dispatch || !_dd_should_trace_dispatch(dispatch TSRMLS_CC) ||
-        !(dispatch->options & DDTRACE_DISPATCH_POSTHOOK)) {
-        _dd_prev_execute_ex(execute_data TSRMLS_CC);
-        return;
+
+// todo: unify with zend_execute_internal's needs
+static void ddtrace_do_non_tracing_prehook(zend_execute_data *execute_data, zval *This, zend_function *fbc,
+                                        ddtrace_dispatch_t *dispatch TSRMLS_DC) {
+    ddtrace_sandbox_backup backup = ddtrace_sandbox_begin(EX(prev_execute_data)->opline TSRMLS_CC);
+    dispatch->busy = 1;
+    ddtrace_dispatch_copy(dispatch);
+
+    zend_fcall_info fci = {0};
+    zend_fcall_info_cache fcc = {0};
+
+    if (zend_fcall_info_init(&dispatch->prehook, 0, &fci, &fcc, NULL, NULL TSRMLS_CC) != SUCCESS) {
+        goto release_dispatch;
     }
+
+    zval *args;
+    MAKE_STD_ZVAL(args);
+    ddtrace_copy_function_args(args, EX(prev_execute_data)->function_state.arguments);
+
+    zval *retval = NULL;
+    fci.retval_ptr_ptr = &retval;
+
+    zval *called_this = EG(uninitialized_zval_ptr), *called_scope = EG(uninitialized_zval_ptr);
+    if (fbc->common.scope) {
+        if (This) {
+            MAKE_STD_ZVAL(called_this);
+            ZVAL_ZVAL(called_this, This, 1, 0);
+        }
+        if (EG(called_scope)) {
+            MAKE_STD_ZVAL(called_scope);
+            ZVAL_STRINGL(called_scope, EG(called_scope)->name, EG(called_scope)->name_length, 0);
+        }
+        if (zend_fcall_info_argn(&fci TSRMLS_CC, 3, &called_this, &called_scope, &args) != SUCCESS) {
+            goto release_args;
+        }
+    } else {
+        if (zend_fcall_info_argn(&fci TSRMLS_CC, 1, &args) != SUCCESS) {
+            goto release_args;
+        }
+    }
+
+    if (zend_call_function(&fci, &fcc TSRMLS_CC ) != SUCCESS) {
+        // todo: debug
+    }
+
+release_args:
+    zend_fcall_info_args_clear(&fci, 1);
+    if (called_this != EG(uninitialized_zval_ptr)) {
+        zval_ptr_dtor(&called_this);
+    }
+    if (called_scope != EG(uninitialized_zval_ptr)) {
+        zval_ptr_dtor(&called_scope);
+    }
+    if (retval) {
+        zval_ptr_dtor(&retval);
+    }
+    zval_ptr_dtor(&args);
+
+release_dispatch:
+    ddtrace_dispatch_release(dispatch);
+    dispatch->busy = 0;
+    ddtrace_sandbox_end(&backup TSRMLS_CC);
+
+    _dd_prev_execute_ex(execute_data TSRMLS_CC);
+}
+
+// todo: unify with zend_execute_internal's needs
+static void ddtrace_do_tracing_posthook(zend_execute_data *execute_data, zval *This, zend_function *fbc,
+                                        ddtrace_dispatch_t *dispatch TSRMLS_DC) {
     dispatch->busy = 1;
     ddtrace_dispatch_copy(dispatch);
 
@@ -365,6 +425,35 @@ void ddtrace_execute_ex(zend_execute_data *execute_data TSRMLS_DC) {
     }
 }
 
+void ddtrace_execute_ex(zend_execute_data *execute_data TSRMLS_DC) {
+    zval *This = EG(This);
+    zend_function *fbc = (zend_function *)execute_data->op_array;
+    ddtrace_dispatch_t *dispatch = _dd_lookup_dispatch_from_fbc(This, fbc TSRMLS_CC);
+    if (!dispatch || !_dd_should_trace_dispatch(dispatch TSRMLS_CC)) {
+        _dd_prev_execute_ex(execute_data TSRMLS_CC);
+        return;
+    }
+
+    if (dispatch->options & DDTRACE_DISPATCH_NON_TRACING) {
+        if (dispatch->options & DDTRACE_DISPATCH_PREHOOK) {
+            ddtrace_do_non_tracing_prehook(execute_data, This, fbc, dispatch TSRMLS_CC);
+            return;
+        }
+
+        // todo: add non-tracing posthook support
+        _dd_prev_execute_ex(execute_data TSRMLS_CC);
+        return;
+    }
+
+    if (dispatch->options & DDTRACE_DISPATCH_PREHOOK) {
+        // todo: add tracing prehook support
+        _dd_prev_execute_ex(execute_data TSRMLS_CC);
+        return;
+    }
+
+    ddtrace_do_tracing_posthook(execute_data, This, fbc, dispatch TSRMLS_CC);
+}
+
 void (*_dd_prev_execute_internal)(zend_execute_data *execute_data_ptr, zend_fcall_info *fci,
                                   int return_value_used TSRMLS_DC);
 void ddtrace_execute_internal(zend_execute_data *execute_data, zend_fcall_info *fci, int return_value_used TSRMLS_DC) {
@@ -372,7 +461,7 @@ void ddtrace_execute_internal(zend_execute_data *execute_data, zend_fcall_info *
     zend_function *fbc = execute_data->function_state.function;
     ddtrace_dispatch_t *dispatch = _dd_lookup_dispatch_from_fbc(This, fbc TSRMLS_CC);
     if (!dispatch || !_dd_should_trace_dispatch(dispatch TSRMLS_CC) ||
-        !(dispatch->options & DDTRACE_DISPATCH_POSTHOOK)) {
+        !((dispatch->options & 0xFu) == DDTRACE_DISPATCH_POSTHOOK)) {
         _dd_prev_execute_internal(execute_data, fci, return_value_used TSRMLS_CC);
         return;
     }

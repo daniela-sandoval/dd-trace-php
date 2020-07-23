@@ -1,10 +1,11 @@
 --TEST--
-DDTrace\hook_method prehook is passed the correct args
+DDTrace\hook_method posthook is passed the correct args (variadic)
 --FILE--
 <?php
 use DDTrace\SpanData;
 
 var_dump(DDTrace\hook_method('Greeter', 'greet',
+    null,
     function (...$args) {
         var_dump($args);
     }
@@ -23,7 +24,8 @@ Greeter::greet('Datadog');
 ?>
 --EXPECT--
 bool(true)
-array(3) {
+Hello, Datadog.
+array(4) {
   [0]=>
   NULL
   [1]=>
@@ -33,6 +35,7 @@ array(3) {
     [0]=>
     string(7) "Datadog"
   }
+  [3]=>
+  NULL
 }
-Hello, Datadog.
 
