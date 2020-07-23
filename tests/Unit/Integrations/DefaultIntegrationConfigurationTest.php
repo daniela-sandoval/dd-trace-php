@@ -11,6 +11,8 @@ final class DefaultIntegrationConfigurationTest extends BaseTestCase
     {
         parent::setUp();
         putenv('DD_TRACE_ANALYTICS_ENABLED');
+        putenv('DD_TRACE_PDO_ANALYTICS_ENABLED');
+        putenv('DD_TRACE_PDO_ANALYTICS_SAMPLE_RATE');
         putenv('DD_PDO_ANALYTICS_ENABLED');
         putenv('DD_PDO_ANALYTICS_SAMPLE_RATE');
     }
@@ -18,61 +20,92 @@ final class DefaultIntegrationConfigurationTest extends BaseTestCase
     public function testTraceAnalyticsOffByDefault()
     {
         $conf = new DefaultIntegrationConfiguration('pdo');
-        $this->assertFalse($conf->isTraceAnalyticsEnabled());
+        self::assertFalse($conf->isTraceAnalyticsEnabled());
     }
 
     public function testTraceAnalyticsIfIntegrationEnabled()
     {
+        putenv('DD_TRACE_PDO_ANALYTICS_ENABLED=true');
+        $conf = new DefaultIntegrationConfiguration('pdo');
+        self::assertTrue($conf->isTraceAnalyticsEnabled());
+    }
+
+    public function testTraceAnalyticsIfIntegrationEnabledDeprecated()
+    {
         putenv('DD_PDO_ANALYTICS_ENABLED=true');
         $conf = new DefaultIntegrationConfiguration('pdo');
-        $this->assertTrue($conf->isTraceAnalyticsEnabled());
+        self::assertTrue($conf->isTraceAnalyticsEnabled());
+    }
+
+    public function testTraceAnalyticsIfIntegrationEnabledWithDeprecatedPrecedence()
+    {
+        putenv('DD_PDO_ANALYTICS_ENABLED=false');
+        putenv('DD_TRACE_PDO_ANALYTICS_ENABLED=true');
+        $conf = new DefaultIntegrationConfiguration('pdo');
+        self::assertTrue($conf->isTraceAnalyticsEnabled());
     }
 
     public function testTraceAnalyticsGlobalEnabledAndNotRequiresExplicit()
     {
         putenv('DD_TRACE_ANALYTICS_ENABLED=true');
         $conf = new DefaultIntegrationConfiguration('pdo', false);
-        $this->assertTrue($conf->isTraceAnalyticsEnabled());
+        self::assertTrue($conf->isTraceAnalyticsEnabled());
     }
 
     public function testTraceAnalyticsGlobalEnabledAndRequiresExplicit()
     {
         putenv('DD_TRACE_ANALYTICS_ENABLED=true');
         $conf = new DefaultIntegrationConfiguration('pdo');
-        $this->assertFalse($conf->isTraceAnalyticsEnabled());
-    }
-
-    public function testTraceAnalyticsIntegrationEnabledAndRequiresExplicit()
-    {
-        putenv('DD_PDO_ANALYTICS_ENABLED=true');
-        $conf = new DefaultIntegrationConfiguration('pdo');
-        $this->assertTrue($conf->isTraceAnalyticsEnabled());
+        self::assertFalse($conf->isTraceAnalyticsEnabled());
     }
 
     public function testTraceAnalyticsGlobalDisabledIntegrationEnabledRequiresExplicit()
     {
         putenv('DD_TRACE_ANALYTICS_ENABLED=false');
+        putenv('DD_TRACE_PDO_ANALYTICS_ENABLED=true');
+        $conf = new DefaultIntegrationConfiguration('pdo');
+        self::assertTrue($conf->isTraceAnalyticsEnabled());
+    }
+
+    public function testTraceAnalyticsGlobalDisabledIntegrationEnabledRequiresExplicitDeprecated()
+    {
+        putenv('DD_TRACE_ANALYTICS_ENABLED=false');
         putenv('DD_PDO_ANALYTICS_ENABLED=true');
         $conf = new DefaultIntegrationConfiguration('pdo');
-        $this->assertTrue($conf->isTraceAnalyticsEnabled());
+        self::assertTrue($conf->isTraceAnalyticsEnabled());
     }
 
     public function testTraceAnalyticsSampleRateDefaultTo1()
     {
         $conf = new DefaultIntegrationConfiguration('pdo');
-        $this->assertEquals(1.0, $conf->getTraceAnalyticsSampleRate());
+        self::assertEquals(1.0, $conf->getTraceAnalyticsSampleRate());
     }
 
     public function testTraceAnalyticsSampleRateCanBeSet()
     {
+        putenv('DD_TRACE_PDO_ANALYTICS_SAMPLE_RATE=0.3');
+        $conf = new DefaultIntegrationConfiguration('pdo');
+        self::assertEquals(0.3, $conf->getTraceAnalyticsSampleRate());
+    }
+
+    public function testTraceAnalyticsSampleRateCanBeSetDeprecated()
+    {
         putenv('DD_PDO_ANALYTICS_SAMPLE_RATE=0.3');
         $conf = new DefaultIntegrationConfiguration('pdo');
-        $this->assertEquals(0.3, $conf->getTraceAnalyticsSampleRate());
+        self::assertEquals(0.3, $conf->getTraceAnalyticsSampleRate());
+    }
+
+    public function testTraceAnalyticsSampleRateCanBeSetWithDeprecatedPrecedence()
+    {
+        putenv('DD_TRACE_PDO_ANALYTICS_SAMPLE_RATE=0.2');
+        putenv('DD_PDO_ANALYTICS_SAMPLE_RATE=0.4');
+        $conf = new DefaultIntegrationConfiguration('pdo');
+        self::assertEquals(0.2, $conf->getTraceAnalyticsSampleRate());
     }
 
     public function testTraceAnalyticsOffIfGlobalAndIntegrationNotSetAndNotRequiresExplicit()
     {
         $conf = new DefaultIntegrationConfiguration('pdo', false);
-        $this->assertFalse($conf->isTraceAnalyticsEnabled());
+        self::assertFalse($conf->isTraceAnalyticsEnabled());
     }
 }
