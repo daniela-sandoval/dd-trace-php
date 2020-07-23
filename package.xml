@@ -389,6 +389,9 @@
             <file name="tests/ext/sandbox/hook_method/posthook_03.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_method/posthook_04.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_method/posthook_05.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/posthook_exceptions_01.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/posthook_span_ids_01.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/posthook_span_ids_02.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_method/prehook_01.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_method/prehook_02.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_method/prehook_03.phpt" role="test" />
