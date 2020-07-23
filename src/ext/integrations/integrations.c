@@ -74,7 +74,7 @@ ddtrace_integration* ddtrace_get_integration_from_string(ddtrace_string integrat
 
 static void _dd_add_integration_to_map(char* name, size_t name_len, ddtrace_integration* integration) {
     zend_hash_str_add_ptr(&_dd_string_to_integration_name_map, name, name_len, integration);
-    ZEND_ASSERT(strlen(ddtrace_integrations[i].name_ucase) == name_len);
+    ZEND_ASSERT(strlen(integration->name_ucase) == name_len);
     ZEND_ASSERT(DDTRACE_LONGEST_INTEGRATION_NAME_LEN >= name_len);
 }
 #else
