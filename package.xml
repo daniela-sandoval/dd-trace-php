@@ -396,6 +396,8 @@
             <file name="tests/ext/sandbox/hook_method/prehook_02.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_method/prehook_03.phpt" role="test" />
             <file name="tests/ext/sandbox/hook_method/prehook_04.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/prehook_span_ids_01.phpt" role="test" />
+            <file name="tests/ext/sandbox/hook_method/prehook_span_ids_02.phpt" role="test" />
             <file name="tests/ext/sandbox/keep_spans_in_limited_tracing_internal_functions.phpt" role="test" />
             <file name="tests/ext/sandbox/keep_spans_in_limited_tracing_internal_methods.phpt" role="test" />
             <file name="tests/ext/sandbox/keep_spans_in_limited_tracing_userland_functions.phpt" role="test" />

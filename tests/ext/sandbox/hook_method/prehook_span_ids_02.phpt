@@ -1,5 +1,5 @@
 --TEST--
-DDTrace\hook_method posthook does not mess up span ids
+DDTrace\hook_method prehook does not mess up spans with children
 --INI--
 zend.assertions=1
 assert.exception=1
@@ -18,30 +18,54 @@ DDTrace\trace_function('main',
         assert($id != 0);
     });
 
+DDTrace\trace_method('Logger', 'log',
+    function ($span) {
+        $span->name = $span->resource = 'log';
+        $span->service = 'phpt';
+    });
+
 DDTrace\hook_method('Greeter', 'greet',
-    null,
-    function () use (&$id) {
+    function () {
         echo "Greeter::greet hooked.\n";
         $topId = dd_trace_peek_span_id();
-        assert($topId != 0);
-        assert($topId != $id);
     });
+
+final class Logger
+{
+    public static function log($component)
+    {
+        echo "Component {$component} logged.\n";
+    }
+}
 
 final class Greeter
 {
     public static function greet($name)
     {
         echo "Hello, {$name}.\n";
+        Logger::log('Greeter::greet');
     }
 }
 
-function main() {
+function main()
+{
     Greeter::greet('Datadog');
 }
 
 main();
 
+$spans = dd_trace_serialize_closed_spans();
+assert(count($spans) == 2);
+
+foreach ($spans as $span) {
+    if ($span['span_id'] == $id) {
+        continue;
+    }
+    assert($span['parent_id'] == $id);
+}
+
 ?>
 --EXPECT--
-Hello, Datadog.
 Greeter::greet hooked.
+Hello, Datadog.
+Component Greeter::greet logged.

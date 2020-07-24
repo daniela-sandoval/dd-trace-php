@@ -1,5 +1,5 @@
 --TEST--
-DDTrace\hook_method does not mess up spans with children
+DDTrace\hook_method posthook does not mess up spans with children
 --INI--
 zend.assertions=1
 assert.exception=1

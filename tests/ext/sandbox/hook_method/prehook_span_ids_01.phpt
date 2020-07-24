@@ -1,5 +1,5 @@
 --TEST--
-DDTrace\hook_method posthook does not mess up span ids
+DDTrace\hook_method prehook does not mess up span ids
 --INI--
 zend.assertions=1
 assert.exception=1
@@ -19,7 +19,6 @@ DDTrace\trace_function('main',
     });
 
 DDTrace\hook_method('Greeter', 'greet',
-    null,
     function () use (&$id) {
         echo "Greeter::greet hooked.\n";
         $topId = dd_trace_peek_span_id();
@@ -43,5 +42,5 @@ main();
 
 ?>
 --EXPECT--
-Hello, Datadog.
 Greeter::greet hooked.
+Hello, Datadog.
