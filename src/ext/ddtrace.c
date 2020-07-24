@@ -753,6 +753,8 @@ static PHP_FUNCTION(hook_method) {
     ddtrace_string classname = {.ptr = NULL, .len = 0};
     ddtrace_string funcname = {.ptr = NULL, .len = 0};
     zval *prehook = NULL, *posthook = NULL;
+    PHP5_UNUSED(return_value_used, this_ptr, return_value_ptr);
+
     if (zend_parse_parameters_ex(ZEND_PARSE_PARAMS_QUIET, ZEND_NUM_ARGS() TSRMLS_CC, "ss|O!O!", &classname.ptr,
                                  &classname.len, &funcname.ptr, &funcname.len, &prehook, zend_ce_closure, &posthook,
                                  zend_ce_closure) != SUCCESS) {
@@ -797,6 +799,8 @@ static PHP_FUNCTION(hook_method) {
 static PHP_FUNCTION(hook_function) {
     ddtrace_string funcname = {.ptr = NULL, .len = 0};
     zval *prehook = NULL, *posthook = NULL;
+    PHP5_UNUSED(return_value_used, this_ptr, return_value_ptr);
+
     if (zend_parse_parameters_ex(ZEND_PARSE_PARAMS_QUIET, ZEND_NUM_ARGS() TSRMLS_CC, "s|O!O!", &funcname.ptr,
                                  &funcname.len, &prehook, zend_ce_closure, &posthook, zend_ce_closure) != SUCCESS) {
         ddtrace_log_debug(
