@@ -318,7 +318,7 @@ void (*_dd_prev_execute_ex)(zend_execute_data *execute_data TSRMLS_DC);
 
 // todo: unify with zend_execute_internal's needs
 static void ddtrace_do_non_tracing_prehook(zend_execute_data *execute_data, zval *This, zend_function *fbc,
-                                        ddtrace_dispatch_t *dispatch TSRMLS_DC) {
+                                           ddtrace_dispatch_t *dispatch TSRMLS_DC) {
     ddtrace_sandbox_backup backup = ddtrace_sandbox_begin(EX(prev_execute_data)->opline TSRMLS_CC);
     dispatch->busy = 1;
     ddtrace_dispatch_copy(dispatch);
@@ -356,7 +356,7 @@ static void ddtrace_do_non_tracing_prehook(zend_execute_data *execute_data, zval
         }
     }
 
-    if (zend_call_function(&fci, &fcc TSRMLS_CC ) != SUCCESS) {
+    if (zend_call_function(&fci, &fcc TSRMLS_CC) != SUCCESS) {
         // todo: debug
     }
 
