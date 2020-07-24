@@ -2,7 +2,7 @@
 
 namespace DDTrace\Tests\Integrations\Elasticsearch\V1;
 
-use DDTrace\Integrations\ElasticSearch\V1\ElasticSearchIntegration;
+use DDTrace\Integrations\ElasticSearch\V1\ElasticSearchSandboxedIntegration;
 use DDTrace\Tests\Common\IntegrationTestCase;
 use DDTrace\Tests\Common\SpanAssertion;
 use Elasticsearch\Client;
@@ -36,18 +36,18 @@ function array_filter_recursive(callable $keep_fn, array $input)
  */
 class ElasticSearchIntegrationTest extends IntegrationTestCase
 {
-    const IS_SANDBOX = false;
+    const IS_SANDBOX = true;
     const HOST = 'elasticsearch2_integration';
 
     public function testNamespaceMethodNotExistsDoesNotCrashApps()
     {
-        ElasticSearchIntegration::traceNamespaceMethod('\Wrong\Namespace', 'wrong_method');
+        ElasticSearchSandboxedIntegration::traceNamespaceMethod('\Wrong\Namespace', 'wrong_method');
         $this->addToAssertionCount(1);
     }
 
     public function testMethodNotExistsDoesNotCrashApps()
     {
-        ElasticSearchIntegration::traceSimpleMethod('\Wrong\Class', 'wrong_method');
+        ElasticSearchSandboxedIntegration::traceSimpleMethod('\Wrong\Class', 'wrong_method');
         $this->addToAssertionCount(1);
     }
 
@@ -332,6 +332,7 @@ class ElasticSearchIntegrationTest extends IntegrationTestCase
         $this->assertEmpty($traces);
     }
 
+
     public function testScroll()
     {
         $client = $this->client();
@@ -380,22 +381,22 @@ class ElasticSearchIntegrationTest extends IntegrationTestCase
         });
 
         $this->assertSpans($traces, [
+            SpanAssertion::exists('Elasticsearch.Serializers.SmartSerializer.deserialize'),
+            SpanAssertion::exists('Elasticsearch.Endpoint.performRequest'),
             SpanAssertion::build(
                 'Elasticsearch.Client.scroll',
                 'elasticsearch',
                 'elasticsearch',
                 'scroll'
             ),
-            SpanAssertion::exists('Elasticsearch.Endpoint.performRequest'),
             SpanAssertion::exists('Elasticsearch.Serializers.SmartSerializer.deserialize'),
+            SpanAssertion::exists('Elasticsearch.Endpoint.performRequest'),
             SpanAssertion::build(
                 'Elasticsearch.Client.scroll',
                 'elasticsearch',
                 'elasticsearch',
                 'scroll'
             ),
-            SpanAssertion::exists('Elasticsearch.Endpoint.performRequest'),
-            SpanAssertion::exists('Elasticsearch.Serializers.SmartSerializer.deserialize'),
         ]);
     }
 

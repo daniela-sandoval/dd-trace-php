@@ -51,7 +51,7 @@ abstract class IntegrationTestCase extends TestCase
             $this->markTestSkipped("PHP 5.6 does not support the legacy API");
         }
         if (Versions::phpVersionMatches('7') && !self::isSandboxed()) {
-            $this->markTestSkipped("PHP 5.6 does not support the legacy API");
+            $this->markTestSkipped("PHP 7 does not support the legacy API");
         }
     }
 

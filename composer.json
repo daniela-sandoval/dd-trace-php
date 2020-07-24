@@ -451,8 +451,7 @@
         ],
         "test-elasticsearch1": [
             "@composer scenario elasticsearch1",
-            "@composer test -- tests/Integrations/Elasticsearch --filter='/Sandbox/'",
-            "DD_TRACE_SANDBOX_ENABLED=0 composer test -- tests/Integrations/Elasticsearch --filter='/^((?!Sandbox).)+$/'"
+            "@composer test -- tests/Integrations/Elasticsearch"
         ],
         "test-guzzle5": [
             "@composer scenario guzzle5",

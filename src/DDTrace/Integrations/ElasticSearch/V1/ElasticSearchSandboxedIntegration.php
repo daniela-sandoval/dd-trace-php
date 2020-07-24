@@ -192,7 +192,7 @@ class ElasticSearchSandboxedIntegration extends SandboxedIntegration
      * @param string $class
      * @param string $name
      */
-    public function traceSimpleMethod($class, $name)
+    public static function traceSimpleMethod($class, $name)
     {
         \DDTrace\trace_method($class, $name, function (SpanData $span) use ($class, $name) {
             if (dd_trace_tracer_is_limited()) {
@@ -210,7 +210,7 @@ class ElasticSearchSandboxedIntegration extends SandboxedIntegration
      * @param string $namespace
      * @param string $name
      */
-    public function traceNamespaceMethod($namespace, $name)
+    public static function traceNamespaceMethod($namespace, $name)
     {
         $class = 'Elasticsearch\Namespaces\\' . $namespace;
 
